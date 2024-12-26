@@ -1,0 +1,95 @@
+blueprint:
+  homeassistant:
+    min_version: "2024.1.0"
+  name: Controller - Shelly 1PM Mini Gen 3
+  description: |
+    Controller automation for executing any kind of action triggered by the provided Shelly 1PM Mini smart relay. Supports Zigbee2MQTT.
+  domain: automation
+  input:
+    integration:
+    controller_entity:
+      name: Controller Entity
+      description: The action sensor of the controller to use for the automation.
+      default: ''
+      selector:
+        entity:
+          domain: sensor
+
+    action_button_short:
+      name: (Optional) Short press
+      description: Action to run on short button press.
+      default: []
+      selector:
+        action:
+    action_button_long:
+      name: (Optional) Long press
+      description: Action to run on long button press.
+      default: []
+      selector:
+        action:
+    action_button_double:
+      name: (Optional) Double press
+      description: Action to run on double button press.
+      default: []
+      selector:
+        action:
+    action_button_triple:
+      name: (Optional) Triple press
+      description: Action to run on triple button press.
+      default: []
+      selector:
+        action:
+    action_button_down:
+      name: (Optional) Button down
+      description: Action to run on button is pressed.
+      default: []
+      selector:
+        action:
+    action_button_up:
+      name: (Optional) Button up
+      description: Action to run on button is released.
+      default: []
+      selector:
+        action:
+variables:
+  # convert input tags to variables to be used in templates
+  integration: !input integration
+
+  # mapping between actions and integrations
+  action_mapping:
+    button_short: [single_push]
+    button_long: [long_push]
+    button_double: [double_push]
+    button_triple: [triple_push]
+    button_down: [btn_down]
+    button_up: [btn_up]
+
+  controller_entity: !input controller_entity
+mode: restart
+max_exceeded: silent
+trigger:
+  - platform: event
+    event_type: state_changed
+    event_data:
+      entity_id: !input controller_entity
+condition:
+  - condition: and
+    conditions:
+      - '{{ trigger.event.data.new_state.state not in ["","None"] }}'
+      - '{{ trigger.event.data.new_state.state != trigger.event.data.old_state.state }}'
+action:
+  - variables:
+      trigger_action: '{{ trigger.event.data.new_state.state }}'
+  - choose:
+      - conditions: '{{ trigger_action | string in action_mapping['button_short'] }}'
+        sequence: !input action_button_short
+      - conditions: '{{ trigger_action | string in action_mapping['button_long'] }}'
+        sequence: !input action_button_long
+      - conditions: '{{ trigger_action | string in action_mapping['button_double'] }}'
+        sequence: !input action_button_double
+      - conditions: '{{ trigger_action | string in action_mapping['button_triple'] }}'
+        sequence: !input action_button_triple
+      - conditions: '{{ trigger_action | string in action_mapping['button_down'] }}'
+        sequence: !input action_button_down
+      - conditions: '{{ trigger_action | string in action_mapping['button_up'] }}'
+        sequence: !input action_button_up
