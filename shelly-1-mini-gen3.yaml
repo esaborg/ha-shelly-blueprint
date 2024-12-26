@@ -81,15 +81,15 @@ action:
   - variables:
       trigger_action: '{{ trigger.event.data.new_state.state }}'
   - choose:
-      - conditions: '{{ trigger_action | string in action_mapping['button_short'] }}'
+      - conditions: '{{ trigger_action | string in action_mapping["button_short"] }}'
         sequence: !input action_button_short
-      - conditions: '{{ trigger_action | string in action_mapping['button_long'] }}'
+      - conditions: '{{ trigger_action | string in action_mapping["button_long"] }}'
         sequence: !input action_button_long
-      - conditions: '{{ trigger_action | string in action_mapping['button_double'] }}'
+      - conditions: '{{ trigger_action | string in action_mapping["button_double"] }}'
         sequence: !input action_button_double
-      - conditions: '{{ trigger_action | string in action_mapping['button_triple'] }}'
+      - conditions: '{{ trigger_action | string in action_mapping["button_triple"] }}'
         sequence: !input action_button_triple
-      - conditions: '{{ trigger_action | string in action_mapping['button_down'] }}'
+      - conditions: '{{ trigger_action | string in action_mapping["button_down"] }}'
         sequence: !input action_button_down
-      - conditions: '{{ trigger_action | string in action_mapping['button_up'] }}'
+      - conditions: '{{ trigger_action | string in action_mapping["button_up"] }}'
         sequence: !input action_button_up
