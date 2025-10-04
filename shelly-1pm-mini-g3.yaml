@@ -1,0 +1,61 @@
+blueprint:
+  name: Shelly 1PM Mini Gen3
+  description: >-
+    Create automations for a Shelly 1PM Mini Gen3 using its event entity.
+    This blueprint reads the event type (single_push, etc.) from the entity's attributes.
+  domain: automation
+  source_url: https://raw.githubusercontent.com/esaborg/ha-shelly-blueprint/refs/heads/main/shelly-1pm-mini-g3.yaml
+
+  input:
+    button_event_entity:
+      name: Button Event Entity
+      description: "Select the event entity for the Shelly 1PM Mini Gen3's button."
+      selector:
+        entity:
+          domain: event
+          integration: mqtt
+
+    # Action Inputs
+    single_press:
+      name: Single Press Action
+      selector:
+        action:
+      default: []
+    double_press:
+      name: Double Press Action
+      selector:
+        action:
+      default: []
+    long_press:
+      name: Long Press Action
+      selector:
+        action:
+      default: []
+
+mode: parallel
+max: 10
+
+trigger:
+  - platform: state
+    entity_id: !input button_event_entity
+
+# This condition block acts as a gatekeeper.
+# The action will only run if the event type is one we have an action for.
+condition:
+  - condition: template
+    value_template: "{{ trigger.to_state.attributes.event_type in ['single_push', 'double_push', 'long_push'] }}"
+
+action:
+  - variables:
+      press_type: '{{ trigger.to_state.attributes.event_type }}'
+
+  - choose:
+      - conditions:
+          - '{{ press_type == "single_push" }}'
+        sequence: !input single_press
+      - conditions:
+          - '{{ press_type == "double_push" }}'
+        sequence: !input double_press
+      - conditions:
+          - '{{ press_type == "long_push" }}'
+        sequence: !input long_press
