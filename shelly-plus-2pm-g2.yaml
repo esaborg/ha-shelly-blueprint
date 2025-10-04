@@ -1,0 +1,106 @@
+blueprint:
+  name: Shelly Plus 2PM
+  description: >-
+    Create automations for a Shelly Plus 2PM using event entities.
+    This corrected version reads the event type (single_push, etc.) from the entity's attributes,
+    which is the correct method for modern event entities.
+  domain: automation
+  source_url: https://raw.githubusercontent.com/esaborg/ha-shelly-blueprint/refs/heads/main/shelly-plus-2pm-g2.yaml
+
+  input:
+    button_1_event_entity:
+      name: Button 1 Event Entity
+      description: "Select the event entity for the first button (e.g., event.shelly_button_0)."
+      selector:
+        entity:
+          domain: event
+          integration: mqtt
+
+    button_2_event_entity:
+      name: Button 2 Event Entity
+      description: "Select the event entity for the second button (e.g., event.shelly_button_1)."
+      selector:
+        entity:
+          domain: event
+          integration: mqtt
+
+    # Action Inputs
+    input_1_single_press:
+      name: Input 1 - Single Press Action
+      selector:
+        action:
+      default: []
+    input_1_double_press:
+      name: Input 1 - Double Press Action
+      selector:
+        action:
+      default: []
+    input_1_long_press:
+      name: Input 1 - Long Press Action
+      selector:
+        action:
+      default: []
+    input_2_single_press:
+      name: Input 2 - Single Press Action
+      selector:
+        action:
+      default: []
+    input_2_double_press:
+      name: Input 2 - Double Press Action
+      selector:
+        action:
+      default: []
+    input_2_long_press:
+      name: Input 2 - Long Press Action
+      selector:
+        action:
+      default: []
+
+mode: parallel
+max: 10
+
+trigger:
+  - platform: state
+    entity_id: !input button_1_event_entity
+  - platform: state
+    entity_id: !input button_2_event_entity
+
+condition:
+  - condition: template
+    value_template: "{{ trigger.to_state.attributes.event_type in ['single_push', 'double_push', 'long_push'] }}"
+
+action:
+  - variables:
+      button_1_id: !input button_1_event_entity
+      button_2_id: !input button_2_event_entity
+      button_entity: '{{ trigger.entity_id }}'
+      press_type: '{{ trigger.to_state.attributes.event_type }}'
+
+  - choose:
+      # === Button 1 Actions ===
+      - conditions:
+          - '{{ button_entity == button_1_id }}'
+          - '{{ press_type == "single_push" }}'
+        sequence: !input input_1_single_press
+      - conditions:
+          - '{{ button_entity == button_1_id }}'
+          - '{{ press_type == "double_push" }}'
+        sequence: !input input_1_double_press
+      - conditions:
+          - '{{ button_entity == button_1_id }}'
+          - '{{ press_type == "long_push" }}'
+        sequence: !input input_1_long_press
+
+      # === Button 2 Actions ===
+      - conditions:
+          - '{{ button_entity == button_2_id }}'
+          - '{{ press_type == "single_push" }}'
+        sequence: !input input_2_single_press
+      - conditions:
+          - '{{ button_entity == button_2_id }}'
+          - '{{ press_type == "double_push" }}'
+        sequence: !input input_2_double_press
+      - conditions:
+          - '{{ button_entity == button_2_id }}'
+          - '{{ press_type == "long_push" }}'
+        sequence: !input input_2_long_press
