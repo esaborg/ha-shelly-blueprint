@@ -26,8 +26,25 @@ blueprint:
       selector:
         action:
       default: []
+    triple_press:
+      name: Triple Press Action
+      selector:
+        action:
+      default: []
     long_press:
       name: Long Press Action
+      selector:
+        action:
+      default: []
+    button_down:
+      name: Button Down Action
+      description: "Action to run when the button is first pressed down."
+      selector:
+        action:
+      default: []
+    button_up:
+      name: Button Up Action
+      description: "Action to run when the button is released."
       selector:
         action:
       default: []
@@ -43,7 +60,7 @@ trigger:
 # The action will only run if the event type is one we have an action for.
 condition:
   - condition: template
-    value_template: "{{ trigger.to_state.attributes.event_type in ['single_push', 'double_push', 'long_push'] }}"
+    value_template: "{{ trigger.to_state.attributes.event_type in ['single_push', 'double_push', 'triple_push', 'long_push', 'btn_down', 'btn_up'] }}"
 
 action:
   - variables:
@@ -57,5 +74,14 @@ action:
           - '{{ press_type == "double_push" }}'
         sequence: !input double_press
       - conditions:
+          - '{{ press_type == "triple_push" }}'
+        sequence: !input triple_press
+      - conditions:
           - '{{ press_type == "long_push" }}'
         sequence: !input long_press
+      - conditions:
+          - '{{ press_type == "btn_down" }}'
+        sequence: !input button_down
+      - conditions:
+          - '{{ press_type == "btn_up" }}'
+        sequence: !input button_up
