@@ -1,0 +1,76 @@
+blueprint:
+  name: Shelly 1PM Mini Gen3 for room lights
+  description: >-
+    A specialized blueprint for a single Shelly button.
+    - Single Click: Toggles a specific light.
+    - Double Click: Turns off all lights in a specific area.
+    - Long Press: Smoothly dims up the specific light.
+    Requires the 'Smoothly Increase Light Brightness' script.
+  domain: automation
+  source_url: https://raw.githubusercontent.com/esaborg/ha-shelly-blueprint/refs/heads/main/shelly-1pm-mini-g3-area-lights.yaml
+
+  input:
+    button_event_entity:
+      name: Shelly Button Event Entity
+      description: "Select the event entity for the Shelly button."
+      selector:
+        entity:
+          domain: event
+          integration: mqtt
+
+    target_light:
+      name: Target Light (for Toggle & Dim)
+      description: "The main light to be toggled and dimmed."
+      selector:
+        entity:
+          domain: light
+
+    target_area:
+      name: Target Area (for Double Click Off)
+      description: "The area where all lights will be turned off on a double click."
+      selector:
+        area:
+
+mode: parallel
+max: 10
+
+trigger:
+  - platform: state
+    entity_id: !input button_event_entity
+
+condition:
+  - condition: template
+    value_template: "{{ trigger.to_state.attributes.event_type in ['single_push', 'double_push', 'long_push', 'btn_up'] }}"
+
+action:
+  - variables:
+      press_type: '{{ trigger.to_state.attributes.event_type }}'
+
+  - choose:
+      - conditions:
+          - '{{ press_type == "single_push" }}'
+        sequence:
+          - service: light.toggle
+            target:
+              entity_id: !input target_light
+
+      - conditions:
+          - '{{ press_type == "double_push" }}'
+        sequence:
+          - service: light.turn_off
+            target:
+              area_id: !input target_area
+
+      - conditions:
+          - '{{ press_type == "long_push" }}'
+        sequence:
+          - service: script.smoothly_increase_light_brightness
+            data:
+              light_entity: !input target_light
+
+      - conditions:
+          - '{{ press_type == "btn_up" }}'
+        sequence:
+          - service: script.turn_off
+            target:
+              entity_id: script.smoothly_increase_light_brightness
